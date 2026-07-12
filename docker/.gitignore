@@ -1,0 +1,17 @@
+
+.env
+venv/
+.venv/
+env/
+ENV/
+
+/pycache/
+*.pyc
+*.pyo
+*.pyd
+
+*.sqlite3
+*.sqlite3-journal
+
+.DS_Store
+Thumbs.db

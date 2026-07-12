@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # Сервіс бази даних PostgreSQL
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  # Сервіс нашого веб-додатка Django
+  django:
+    build: ./django_app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./django_app:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: always
+
+  # Сервіс веб-сервера Nginx
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - django
+    restart: always
+
+# Окремий том для збереження даних бази даних на хост-машині
+volumes:
+  postgres_data:
