@@ -64,13 +64,13 @@
 Ось підтвердження успішного створення ресурсів в AWS:
 
 **1. VPC ID:**
-![VPC Result](modules/vpcresult.png)
+![VPC Result](modules/vpc result.png)
 
 **2. ECR Repository:**
-![ECR Result](modules/ecrresult.png)
+![ECR Result](modules/ecr result.png)
 
 **3. S3 Bucket:**
-![S3 Result](modules/3bucketsresult.png)
+![S3 Result](modules/3buckets result.png)
 
 * **Безпека**: Файли стану (`.tfstate`) та конфіденційні дані ігноруються системою Git завдяки налаштованому `.gitignore`.
 * **Очищення ресурсів**: Завжди виконуйте `terraform destroy` після завершення тестування, щоб уникнути непередбачуваних витрат на хмарні сервіси AWS.
