@@ -1,0 +1,52 @@
+replicaCount: 1
+
+image:
+  repository: 495671352321.dkr.ecr.us-west-2.amazonaws.com/lesson-5-ecr
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+serviceAccount:
+  create: true
+  name: ""
+  automount: true
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+service:
+  type: ClusterIP
+  port: 8000
+
+
+env:
+  POSTGRES_HOST: "db"
+  POSTGRES_PORT: "5432"
+  POSTGRES_NAME: "django_db"
+  POSTGRES_USER: "django_user"
+  POSTGRES_PASSWORD: ""
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+command: ["/bin/sh", "-c"]
+args: ["while true; do sleep 3600; done"]
