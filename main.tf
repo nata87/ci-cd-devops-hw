@@ -2,14 +2,35 @@ provider "aws" {
   region = "us-west-2"
 }
 
-# Підключаємо модуль для S3 та DynamoDB
+provider "kubernetes" {
+  host                   = module.eks.eks_cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.eks_cluster_certificate_authority)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", module.eks.eks_cluster_name]
+    command     = "aws"
+  }
+}
+
+provider "helm" {
+  kubernetes { 
+    host                   = module.eks.eks_cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.eks_cluster_certificate_authority)
+    
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      args        = ["eks", "get-token", "--cluster-name", module.eks.eks_cluster_name]
+      command     = "aws"
+    }
+  }
+}
+
 module "s3_backend" {
   source      = "./modules/s3-backend"
   bucket_name = "terraform-state-bucket-nata" 
   table_name  = "terraform-locks"
 }
 
-# Підключаємо модуль для VPC
 module "vpc" {
   source             = "./modules/vpc"
   vpc_cidr_block     = "10.0.0.0/16"
@@ -19,20 +40,26 @@ module "vpc" {
   vpc_name           = "vpc"
 }
 
-# Підключаємо модуль для ECR
 module "ecr" {
   source       = "./modules/ecr"
   ecr_name     = "lesson-5-ecr"
   scan_on_push = true
 }
 
-# Підключаємо модуль для eks
 module "eks" {
-  source          = "./modules/eks"          
-  cluster_name    = "eks-cluster-lesson-7"
-  subnet_ids      = module.vpc.public_subnets # Використовуємо підмережі з модуля VPC
-  instance_type   = "t3.small"
-  desired_size    = 1
-  max_size        = 2
-  min_size        = 1
+   source          = "./modules/eks"          
+   cluster_name    = "eks-cluster-lesson-7"
+   subnet_ids      = module.vpc.public_subnets
+   instance_type   = "t3.small"
+   desired_size    = 2
+   max_size        = 6
+   min_size        = 2
+ }
+
+module "jenkins" {
+  source     = "./modules/jenkins"
+}
+
+module "argo_cd" {
+  source     = "./modules/argo_cd"
 }

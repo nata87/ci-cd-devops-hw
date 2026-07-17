@@ -24,6 +24,11 @@ resource "aws_iam_role_policy_attachment" "eks" {
   role       = aws_iam_role.eks.name
 }
 
+# блок для отримання токена авторизації
+data "aws_eks_cluster_auth" "eks" {
+  name = aws_eks_cluster.eks.name
+}
+
 # Створення EKS-кластера
 resource "aws_eks_cluster" "eks" {
   name     = var.cluster_name

@@ -1,0 +1,22 @@
+controller:
+  image:
+    registry: "docker.io"
+    repository: "jenkins/jenkins"
+    tag: "lts-jdk17"
+  serviceType: LoadBalancer
+  servicePort: 8080
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  agent:
+    enabled: true
+
+  persistence:
+    enabled: true
+    storageClass: "gp2"
+    size: 10Gi
