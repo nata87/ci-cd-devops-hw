@@ -12,11 +12,12 @@ controller:
     limits:
       cpu: "1000m"
       memory: "1Gi"
+  admin:
+    username: admin
+    password: admin
 
-  agent:
-    enabled: true
+persistence:
+  enabled: false
 
-  persistence:
-    enabled: true
-    storageClass: "gp2"
-    size: 10Gi
+agent:
+  enabled: true
