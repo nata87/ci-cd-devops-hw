@@ -28,17 +28,15 @@ spec:
     stage('Build & Push Docker Image') {
       steps {
         container('kaniko') {
+          // Використовуємо ваші облікові дані AWS для автентифікації
           withCredentials([usernamePassword(credentialsId: '4087ff39-0114-475d-b6f3-926b6fd116c8', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
             sh '''
-              # Налаштування авторизації для Kaniko
-              mkdir -p /kaniko/.docker
-              
-              # Використовуємо -w 0, щоб base64 не додавав переноси рядків
-              AUTH_TOKEN=$(echo -n $AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY | base64 -w 0)
-              
-              echo "{\\"auths\\":{\\"$ECR_REGISTRY\\":{\\"auth\\":\\"$AUTH_TOKEN\\"}}}" > /kaniko/.docker/config.json
-              
-              # Запуск збірки: контекст - корінь, шлях до Dockerfile - у папці docker/django_app/
+              # Експортуємо змінні, щоб Kaniko зміг авторизуватися в ECR автоматично
+              export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+              export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+              export AWS_DEFAULT_REGION=us-west-2
+
+              # Запуск збірки Kaniko
               /kaniko/executor \
                 --context=`pwd` \
                 --dockerfile=docker/django_app/Dockerfile \
