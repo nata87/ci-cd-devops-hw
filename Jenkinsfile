@@ -28,15 +28,13 @@ spec:
     stage('Build & Push Docker Image') {
       steps {
         container('kaniko') {
-          // Використовуємо ваші облікові дані AWS для автентифікації
           withCredentials([usernamePassword(credentialsId: '4087ff39-0114-475d-b6f3-926b6fd116c8', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
             sh '''
-              # Експортуємо змінні, щоб Kaniko зміг авторизуватися в ECR автоматично
               export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
               export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
               export AWS_DEFAULT_REGION=us-west-2
 
-              # Запуск збірки: контекст змінено на папку з застосунком
+              # Використовуємо контекст папки з Dockerfile для коректної збірки
               /kaniko/executor \
                 --context=`pwd`/docker/django_app \
                 --dockerfile=Dockerfile \
@@ -55,13 +53,27 @@ spec:
         container('jnlp') {
           withCredentials([usernamePassword(credentialsId: 'ba1a3fa7-cce9-4ae5-9aaf-92dca2826c73', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
             script {
-              sh "sed -i 's|tag:.*|tag: \"${IMAGE_TAG}\"|' charts/django-app/values.yaml"
-              sh "git config user.email 'jenkins@jenkins.com'"
-              sh "git config user.name 'Jenkins'"
-              sh "git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/nata87/ci-cd-devops-hw.git"
-              sh "git add charts/django-app/values.yaml"
-              sh "git commit -m 'Jenkins update image tag to ${IMAGE_TAG}'"
-              sh "git push origin main"
+              // Повертаємося в корінь і оновлюємо значення
+              sh """
+                cd /home/jenkins/agent/workspace/django-ci-cd
+                
+                # Заміна тегу в YAML
+                sed -i 's|tag:.*|tag: \"${IMAGE_TAG}\"|' charts/django-app/values.yaml
+                
+                # Налаштування гіт
+                git config user.email 'jenkins@jenkins.com'
+                git config user.name 'Jenkins'
+                git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/nata87/ci-cd-devops-hw.git
+                
+                # Перевірка на зміни перед комітом
+                if [ -n "\$(git status --porcelain)" ]; then
+                    git add charts/django-app/values.yaml
+                    git commit -m 'Jenkins update image tag to ${IMAGE_TAG}'
+                    git push origin main
+                else
+                    echo "No changes detected in values.yaml, skipping push."
+                fi
+              """
             }
           }
         }
