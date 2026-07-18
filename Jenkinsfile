@@ -6,30 +6,23 @@ pipeline {
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
     stages {
-        stage('Build') {
+        stage('Build and Push') {
             steps {
-                // Вказуємо, що цей етап має виконуватися в контейнері з назвою 'docker'
-                container('docker') {
-                    script {
-                        sh "docker build -t ${REPO_NAME}:${IMAGE_TAG} ."
-                    }
-                }
-            }
-        }
-        stage('Push') {
-            steps {
-                container('docker') {
-                    withCredentials([usernamePassword(credentialsId: '4087ff39-0114-475d-b6f3-926b6fd116c8', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                        sh "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
-                        sh "docker tag ${REPO_NAME}:${IMAGE_TAG} ${ECR_REGISTRY}/${REPO_NAME}:${IMAGE_TAG}"
-                        sh "docker push ${ECR_REGISTRY}/${REPO_NAME}:${IMAGE_TAG}"
-                    }
+                container('kaniko') {
+                    sh """
+                    /kaniko/executor \
+                    --context=`pwd` \
+                    --dockerfile=Dockerfile \
+                    --destination=${ECR_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} \
+                    --destination=${ECR_REGISTRY}/${REPO_NAME}:latest
+                    """
                 }
             }
         }
         stage('Update Manifest') {
             steps {
-                container('docker') {
+                // Використовуємо контейнер з git (зазвичай це 'jnlp' або окремий 'git')
+                container('jnlp') {
                     withCredentials([usernamePassword(credentialsId: 'ba1a3fa7-cce9-4ae5-9aaf-92dca2826c73', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
                         script {
                             sh "sed -i 's|tag:.*|tag: \"${IMAGE_TAG}\"|' helm-chart/django-app/values.yaml"
