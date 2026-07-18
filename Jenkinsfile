@@ -32,13 +32,13 @@ spec:
             sh '''
               # Налаштування авторизації для Kaniko
               mkdir -p /kaniko/.docker
-              echo "{\\"auths\\":{\\"$ECR_REGISTRY\\":{\\"auth\\":\\"$(echo -n $AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY | base64)\\"}}}" > /kaniko/.docker/config.json
               
-              # Дебаг: перевірка шляху
-              echo "Checking Dockerfile in folder:"
-              ls -la docker/django_app/Dockerfile
+              # Використовуємо -w 0, щоб base64 не додавав переноси рядків
+              AUTH_TOKEN=$(echo -n $AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY | base64 -w 0)
               
-              # Запуск збірки: контекст - корінь проєкту, шлях до Dockerfile - через папку
+              echo "{\\"auths\\":{\\"$ECR_REGISTRY\\":{\\"auth\\":\\"$AUTH_TOKEN\\"}}}" > /kaniko/.docker/config.json
+              
+              # Запуск збірки: контекст - корінь, шлях до Dockerfile - у папці docker/django_app/
               /kaniko/executor \
                 --context=`pwd` \
                 --dockerfile=docker/django_app/Dockerfile \
