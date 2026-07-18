@@ -63,3 +63,22 @@ module "jenkins" {
 module "argo_cd" {
   source     = "./modules/argo_cd"
 }
+
+module "rds" {
+  source = "./modules/rds"
+
+  # Обов'язкові аргументи:
+  name     = "my-app-db"
+  password = "SuperSecretPassword123!"
+  
+  # Змінюємо клас на db.t3.micro, щоб пройти обмеження Free Tier:
+  instance_class = "db.t3.micro"
+  
+  # Інші аргументи:
+  use_aurora = false
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets 
+  
+  db_name  = "myapp"
+  username = "dbadmin"
+}

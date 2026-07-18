@@ -1,52 +1,44 @@
-# 🚀 Домашнє завдання 7: EKS, ECR та Helm
+# Домашнє завдання 10: Створення гнучкого Terraform-модуля для баз даних
 
-Цей проект демонструє розгортання Django-застосунку в AWS EKS за допомогою інфраструктури як коду (Terraform) та менеджера пакетів (Helm).
+Цей проект містить Terraform-модуль для розгортання баз даних в AWS. Модуль підтримує як класичний Amazon RDS (PostgreSQL), так і масштабований кластер Amazon Aurora.
 
-## 🛠 Технології
-* **Cloud:** AWS (VPC, ECR, EKS)
-* **IaC:** Terraform
-* **Orchestration:** Kubernetes (EKS)
-* **Package Management:** Helm
-* **Scaling:** Horizontal Pod Autoscaler (HPA)
+## Вимоги до домашнього завдання
+У межах виконання завдання було реалізовано:
+
+[x] Універсальний модуль: Створено модуль modules/rds, який дозволяє керувати різними типами БД.
+
+[x] Гнучкість (Conditional Logic): Використано параметр use_aurora (тип bool) для перемикання між RDS та Aurora за допомогою мета-аргументу count.
+
+[x] Налаштування мережі: Створено aws_db_subnet_group та aws_security_group з підтримкою вхідних/вихідних правил.
+
+[x] Параметризація: Реалізовано гнучке налаштування параметрів бази даних через dynamic "parameter" блоки.
+
+[x] Best Practices: Розділено ресурси на логічні файли (shared.tf, rds.tf, aurora.tf, variables.tf, outputs.tf).
+
+[x] Масштабованість: Налаштовано підтримку реплік (read-only) для кластера Aurora.
 
 
-##  Як запустити проект
+##  Структура модуля
+modules/rds/
+├── aurora.tf      # Логіка створення Aurora кластера
+├── rds.tf         # Логіка створення звичайного RDS інстансу
+├── shared.tf      # Спільні ресурси (Subnet Group, Security Group)
+├── variables.tf   # Оголошення всіх вхідних змінних
+└── outputs.tf     # Виводи для отримання endpoint бази
 
-### 1. Ініціалізація та розгортання інфраструктури (Terraform)
-Перейдіть у папку з проєктом та розгорніть кластер:
 
-```bash
-cd lesson-7
-terraform init
-terraform apply -auto-approve
-```
+##  Команди для роботи
+Ініціалізація: terraform init
 
-### 2. Розгортання застосунку (Helm)
-Встановіть або оновіть реліз у кластері:
+Перевірка плану: terraform plan
 
-Bash
-```bash
-helm upgrade --install my-django-release ./charts/django-app \
-  --set env.POSTGRES_PASSWORD=ваш_пароль
-```
-## Перевірка статусу
-Перевірка подів:
-```bash
-kubectl get pods
-```
-Перевірка автоскалера:
-```bash
-kubectl get hpa
-```
-Перевірка сервісу:kubectl get svc
-```bash
-kubectl kubectl get svc
-```
+Застосування: terraform apply
+
 
 ### Результат
-![Pods Status](images/pods.png)
-![Running Pods](images/running%20pods.png) |
-![HPA Status](images/hpa.png) |
-![Load Balancer](images/loadBalancer.png) |
-![ECR Repository](images/ecrLatest.png) |
-![EKS Cluster](images/eks.png)
+
+![успішний результат виконання команди terraform apply](images/terraformApply.png)
+
+![AWS Console -> RDS -> Databases](images/database.png)
+
+
