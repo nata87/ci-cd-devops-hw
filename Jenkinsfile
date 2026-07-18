@@ -36,10 +36,10 @@ spec:
               export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
               export AWS_DEFAULT_REGION=us-west-2
 
-              # Запуск збірки Kaniko
+              # Запуск збірки: контекст змінено на папку з застосунком
               /kaniko/executor \
-                --context=`pwd` \
-                --dockerfile=docker/django_app/Dockerfile \
+                --context=`pwd`/docker/django_app \
+                --dockerfile=Dockerfile \
                 --destination=$ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG \
                 --cache=true \
                 --insecure \
